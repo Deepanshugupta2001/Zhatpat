@@ -1,4 +1,4 @@
-import { API_URL, assertApiUrl } from "./apiConfig.jsx";
+import { API_URL, assertApiUrl, clearAuthToken, getAuthHeaders, setAuthToken } from "./apiConfig.jsx";
 
 const request = async (path, options = {}) => {
   assertApiUrl();
@@ -7,6 +7,7 @@ const request = async (path, options = {}) => {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
       ...(options.headers || {}),
     },
     ...options,
@@ -20,26 +21,30 @@ const request = async (path, options = {}) => {
   return data;
 };
 
-export const registerCustomerApi = (payload) => request("/auth/register/customer", {
-  method: "POST",
-  body: JSON.stringify(payload),
-});
+const authRequest = async (path, payload) => {
+  const data = await request(path, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 
-export const registerSellerApi = (payload) => request("/auth/register/seller", {
-  method: "POST",
-  body: JSON.stringify(payload),
-});
+  setAuthToken(data.token);
+  return data;
+};
 
-export const loginCustomerApi = (payload) => request("/auth/login/customer", {
-  method: "POST",
-  body: JSON.stringify(payload),
-});
+export const registerCustomerApi = (payload) => authRequest("/auth/register/customer", payload);
 
-export const loginSellerApi = (payload) => request("/auth/login/seller", {
-  method: "POST",
-  body: JSON.stringify(payload),
-});
+export const registerSellerApi = (payload) => authRequest("/auth/register/seller", payload);
+
+export const loginCustomerApi = (payload) => authRequest("/auth/login/customer", payload);
+
+export const loginSellerApi = (payload) => authRequest("/auth/login/seller", payload);
 
 export const getMeApi = () => request("/auth/me");
 
-export const logoutApi = () => request("/auth/logout", { method: "POST" });
+export const logoutApi = async () => {
+  try {
+    return await request("/auth/logout", { method: "POST" });
+  } finally {
+    clearAuthToken();
+  }
+};

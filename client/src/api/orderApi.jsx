@@ -1,4 +1,4 @@
-import { API_URL, assertApiUrl } from "./apiConfig.jsx";
+import { API_URL, assertApiUrl, getAuthHeaders } from "./apiConfig.jsx";
 
 const request = async (path, options = {}) => {
   assertApiUrl();
@@ -7,6 +7,7 @@ const request = async (path, options = {}) => {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeaders(),
       ...(options.headers || {}),
     },
     ...options,
