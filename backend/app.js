@@ -14,7 +14,25 @@ connectDB();
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
+app.set("trust proxy", 1);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://zhatpat.vercel.app",
+  ...(process.env.CLIENT_URLS || process.env.CLIENT_URL || "").split(",").map((origin) => origin.trim()).filter(Boolean),
+];
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

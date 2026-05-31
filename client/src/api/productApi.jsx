@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import { API_URL, assertApiUrl } from "./apiConfig.jsx";
 
 export const categoryFilters = [
   "all",
@@ -65,6 +65,7 @@ export const featuredProducts = catalogSeed.map(([
 
 export const getProductsApi = async () => {
   try {
+    assertApiUrl();
     const response = await fetch(`${API_URL}/products`);
     const data = await response.json();
 
